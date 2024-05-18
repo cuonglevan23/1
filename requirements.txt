@@ -1,0 +1,14 @@
+contourpy==1.2.1
+customtkinter==5.2.2
+dlib==19.24.4
+mysql-connector-python==8.2.0
+numpy==1.26.1
+opencv-contrib-python==4.9.0.80
+opencv-python==4.9.0.80
+pandas==2.2.2
+Pillow==10.1.0
+pip==24.0
+tk==0.1.0
+tkcalendar==1.6.1
+tkTimePicker==2.0.2
+utils==1.0.2
