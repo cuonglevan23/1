@@ -150,7 +150,7 @@ class Admin_Dashboard(customtkinter.CTk):
 
             def trainning_face():
                 dataset_path = '/Users/lvc/PycharmProjects/pythonProject6/dataset'
-                output_path = '/Users/lvc/PycharmProjects/pythonProject6/trainer'
+                output_path = '/Users/lvc/PycharmProjects/pythonProject6/trainer/trainer.yml'
                 train_face_recognizer(dataset_path, output_path)
                 messagebox.showinfo("Đã huấn luyện thành công.")
 

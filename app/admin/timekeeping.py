@@ -3,9 +3,12 @@ from tkinter import messagebox
 import cv2
 from PIL import ImageTk, Image
 import customtkinter
-from app.dbms.person_management import get_person_list, check_last_attendance_time, update_last_attendance_time
+from app.dbms.person_management import get_person_list, check_last_attendance_time, update_last_attendance_time, \
+    insert_into_attendance
 from app.dbms.person_management import check_attendance_status
 from app.dbms.person_management import timekeeping
+
+
 class Timekeeping(customtkinter.CTk):
 
     def __init__(self, main):
@@ -20,7 +23,7 @@ class Timekeeping(customtkinter.CTk):
         myscreenheight = self.main.winfo_screenheight()
         xCordinate = int((myscreenwidth / 2) - (width / 2))
         yCordinate = int((myscreenheight / 2) - (height / 2))
-        self.main.geometry('{}x{}+{}+{}'.format(width, height, xCordinate+200, yCordinate))
+        self.main.geometry('{}x{}+{}+{}'.format(width, height, xCordinate + 200, yCordinate))
         self.main.maxsize(1800, 1200)
 
         # font
@@ -43,7 +46,8 @@ class Timekeeping(customtkinter.CTk):
         self.leftFrame.pack(side=LEFT, fill=Y, padx=(20, 0))
 
         # Title Left Frame
-        titleLeftFrame = customtkinter.CTkLabel(master=self.leftFrame, text="Danh sách người chấm công", font=('Times New Roman', 20, 'bold'))
+        titleLeftFrame = customtkinter.CTkLabel(master=self.leftFrame, text="Danh sách người chấm công",
+                                                font=('Times New Roman', 20, 'bold'))
         titleLeftFrame.pack(side=TOP, fill=X, padx=20, pady=20)
 
         # Thêm khung để hiển thị webcam
@@ -55,25 +59,23 @@ class Timekeeping(customtkinter.CTk):
         self.start_button.pack(pady=20)
 
         # Thêm nhãn để hiển thị thông tin nhận diện
-        self.recognized_face_label = customtkinter.CTkLabel(master=centerFrame, text="", font=('Times New Roman', 20, 'bold'))
+        self.recognized_face_label = customtkinter.CTkLabel(master=centerFrame, text="",
+                                                            font=('Times New Roman', 20, 'bold'))
         self.recognized_face_label.pack(pady=20)
 
         # Khởi tạo webcam và các thuộc tính khác nhưng không bật nhận diện ngay lập tức
         self.cap = cv2.VideoCapture(0)
         self.recognizer = cv2.face.LBPHFaceRecognizer_create()
         self.recognizer.read('/Users/lvc/PycharmProjects/pythonProject6/trainer/trainer.yml')
-        self.faceCascade = cv2.CascadeClassifier('/Users/lvc/PycharmProjects/pythonProject6/haarcascade_frontalface_default.xml')
+        self.faceCascade = cv2.CascadeClassifier(
+            '/Users/lvc/PycharmProjects/pythonProject6/haarcascade_frontalface_default.xml')
 
         # Lấy danh sách tên từ cơ sở dữ liệu
-        self.names = self.get_person_names()
+        self.person_list = self.get_person_list()
 
-    def get_person_names(self):
+    def get_person_list(self):
         person_list = get_person_list()
-        names = [person.getName() for person in person_list]
-        id= [person.getId() for person in person_list]
-        print(names)
-        print(id)
-        return names
+        return {person.getId(): person.getName() for person in person_list}
 
     def start_recognition(self):
         self.show_webcam()
@@ -97,11 +99,9 @@ class Timekeeping(customtkinter.CTk):
             id, confidence = self.recognizer.predict(gray[y:y + h, x:x + w])
 
             if (confidence < 100):
-                if id < len(self.names):
+                name = self.person_list.get(id, "unknown")
+                if name != "unknown":
                     self.mark_attendance(id)
-                    name = self.names[id]
-                else:
-                    name = "unknown"
                 confidence_text = "  {0}%".format(round(100 - confidence))
             else:
                 name = "unknown"
@@ -126,7 +126,7 @@ class Timekeeping(customtkinter.CTk):
                 1
             )
 
-            recognized_faces.append(f"Tên: {name},ID: {id}")
+            recognized_faces.append(f"Tên: {name}, ID: {id}")
 
         if recognized_faces:
             self.recognized_face_label.configure(text="\n".join(recognized_faces))
@@ -185,10 +185,12 @@ class Timekeeping(customtkinter.CTk):
 
         if allow_attendance:
             success = timekeeping(person_id)
+            insert_into_attendance(person_id, 1)
             if success:
                 # Cập nhật thời gian điểm danh mới nhất
                 update_last_attendance_time(person_id)
                 messagebox.showinfo("Success", "Điểm danh thành công!")
+
                 # Cập nhật lại danh sách người chấm công
                 self.display_attendance_list()
             else:
@@ -200,5 +202,6 @@ class Timekeeping(customtkinter.CTk):
 if __name__ == '__main__':
     main = customtkinter.CTk()
     timekeeping_instance = Timekeeping(main)
+
     timekeeping_instance.display_attendance_list()
     main.mainloop()

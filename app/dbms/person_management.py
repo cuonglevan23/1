@@ -312,6 +312,27 @@ def update_last_attendance_time(person_id):
         if conn:
             conn.close()
 
+def insert_into_attendance(person_id, status):
+    try:
+        conn = Connect()
+        cursor = conn.cursor()
+
+        # Chèn dữ liệu vào bảng Attendance
+        cursor.execute("INSERT INTO Attendance (person_id, status) VALUES (%s, %s)", (person_id, status))
+        conn.commit()
+
+        print("Đã chèn dữ liệu vào bảng Attendance.")
+
+    except mysql.connector.Error as err:
+        print("Lỗi khi chèn dữ liệu vào bảng Attendance:", err)
+
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
+
+
 if __name__ == '__main__':
     # Chạy chức năng chấm công mỗi ngày lúc 8h sáng
     while True:
